@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { User, Sparkles } from "lucide-vue-next";
 import { useChat } from "../composable/useChat";
 import type { Message } from "../types/chat";
 
@@ -9,16 +10,82 @@ defineProps<{ message: Message }>();
 
 <template>
   <div :class="['message', message.role]">
-    <div class="avatar">{{ message.role === "USER" ? "🧑" : "✨" }}</div>
-    <div class="bubble">
+    <div class="avatar">
+      <span v-if="message.role === 'USER'"><User /></span>
+      <span v-else><Sparkles /></span>
+    </div>
+    <div :class="['bubble', message.role]">
       <!-- Cursor parpadeante mientras hace streaming -->
-      <span v-if="message.isStreaming && !message.content">Pensando...</span>
+      <span class="thinking" v-if="message.isStreaming && !message.content">Thinking...</span>
       <div
         v-else
         class="markdown-body"
         v-html="renderMarkdown(message.content)"
       />
       <span v-if="message.isStreaming" class="cursor">▋</span>
+      <div class="timestamp">{{ new Date().toLocaleString().split(",")[1] }}</div class="timestamp">
     </div>
   </div>
 </template>
+
+<style scoped>
+.message {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.message.USER {
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #3c3c3c;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+}
+
+.bubble.USER {
+  text-align: right;
+}
+
+.bubble.ASSISTANT {
+  text-align: left;
+}
+
+.cursor {
+  animation: blink 1s infinite;
+}
+
+.timestamp {
+  font-size: 0.8rem;
+  color: #888;
+  text-align: right;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+</style>
