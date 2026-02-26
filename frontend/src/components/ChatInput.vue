@@ -1,16 +1,43 @@
 <script setup lang="ts">
+/**
+ * @fileoverview Componente de entrada de mensajes del chat.
+ *
+ * Proporciona un textarea para redactar mensajes y dos botones de acción:
+ * enviar el mensaje y limpiar la conversación.
+ *
+ * @component ChatInput
+ *
+ * @emits send  - Se emite con el texto del mensaje cuando el usuario lo envía.
+ * @emits clear - Se emite cuando el usuario pulsa el botón de limpiar el chat.
+ *
+ * @example
+ * <ChatInput @send="onSend" @clear="onClear" />
+ */
+
 import { Send, Trash2 } from "lucide-vue-next";
 import { ref } from "vue";
 
 const emit = defineEmits<{ send: [value: string]; clear: [] }>();
+
+/** Texto actualmente escrito en el textarea, enlazado con `v-model`. */
 const input = ref("");
 
+/**
+ * Valida que el textarea no esté vacío, emite el evento `send` con el texto
+ * y limpia el campo de entrada.
+ */
 const handleSend = () => {
   if (!input.value.trim()) return;
   emit("send", input.value);
   input.value = "";
 };
 
+/**
+ * Intercepta la tecla `Enter` para enviar el mensaje.
+ * `Shift+Enter` se reserva para insertar un salto de línea sin enviar.
+ *
+ * @param e - Evento de teclado capturado en el textarea.
+ */
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();

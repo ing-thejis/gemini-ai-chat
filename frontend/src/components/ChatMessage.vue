@@ -1,4 +1,18 @@
 <script setup lang="ts">
+/**
+ * @fileoverview Componente que renderiza un mensaje individual del chat.
+ *
+ * Muestra el avatar del emisor, el contenido en Markdown y un cursor
+ * parpadeante mientras el mensaje del asistente está en streaming.
+ *
+ * @component ChatMessage
+ *
+ * @prop {Message} message - El objeto mensaje a renderizar.
+ *
+ * @example
+ * <ChatMessage :message="{ id: '1', role: 'USER', content: 'Hola' }" />
+ */
+
 import { User, Sparkles } from "lucide-vue-next";
 import { useChat } from "../composable/useChat";
 import type { Message } from "../types/chat";
@@ -11,17 +25,19 @@ defineProps<{ message: Message }>();
 <template>
   <div :class="['message', message.role]">
     <div class="avatar">
+      <!-- Icono de usuario para mensajes del usuario, ícono Sparkles para el asistente -->
       <span v-if="message.role === 'USER'"><User /></span>
       <span v-else><Sparkles /></span>
     </div>
     <div :class="['bubble', message.role]">
-      <!-- Cursor parpadeante mientras hace streaming -->
+      <!-- Texto "Thinking..." mientras el asistente no ha generado contenido aún -->
       <span class="thinking" v-if="message.isStreaming && !message.content">Thinking...</span>
       <div
         v-else
         class="markdown-body"
         v-html="renderMarkdown(message.content)"
       />
+      <!-- Cursor parpadeante visible durante el streaming -->
       <span v-if="message.isStreaming" class="cursor">▋</span>
       <div class="timestamp">{{ new Date().toLocaleString().split(",")[1] }}</div class="timestamp">
     </div>

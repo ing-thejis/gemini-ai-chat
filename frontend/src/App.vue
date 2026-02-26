@@ -1,14 +1,31 @@
 <script setup lang="ts">
+/**
+ * @fileoverview Componente raíz de la aplicación.
+ *
+ * Actúa como orquestador del layout principal: integra el historial de mensajes,
+ * el área de entrada y el auto-scroll al último mensaje.
+ *
+ * @component App
+ */
+
 import { ref, nextTick, watch } from "vue";
 import ChatMessage from "./components/ChatMessage.vue";
 import ChatInput from "./components/ChatInput.vue";
 import { useChat } from "./composable/useChat";
 
 const { messages, isLoading, error, sendMessage, clearChat } = useChat();
+
+/** Controla el tema oscuro de la interfaz. Reservado para uso futuro. */
 const isDark = ref(false);
+
+/** Referencia al elemento centinela al final del chat, usado para el auto-scroll. */
 const chatEnd = ref<HTMLElement | null>(null);
 
-// Auto-scroll al último mensaje
+/**
+ * Observa cambios en el array de mensajes (incluyendo mutaciones profundas como
+ * actualizaciones de contenido durante el streaming) y desplaza la vista
+ * suavemente hasta el último mensaje tras el siguiente ciclo de renderizado.
+ */
 watch(messages, async () => {
   await nextTick();
   chatEnd.value?.scrollIntoView({ behavior: "smooth" });
