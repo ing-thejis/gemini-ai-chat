@@ -20,4 +20,6 @@ npm-debug.log*
 .vscode/
 .idea/
 
-request.http
+# file http
+*.http
+*.rest
