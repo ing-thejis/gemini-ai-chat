@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { stream } from "hono/streaming";
 
 // Tipos para el request body
@@ -19,7 +19,7 @@ if (!apiKey) {
   console.error("❌ GEMINI_API_KEY no está definida en el archivo .env");
 }
 
-const genAI = new GoogleGenerativeAI(apiKey || "");
+const ai = new GoogleGenAI({ apiKey: apiKey || "" });
 
 chat.post("/", async (ctx) => {
   // 1. Validar el body
@@ -35,18 +35,21 @@ chat.post("/", async (ctx) => {
     parts: [{ text: msg.content }],
   }));
 
-  // 3. Iniciar el modelo y la sesión de chat
-  const model = genAI.getGenerativeModel({
+  // 3. Iniciar la sesión de chat
+  const chatSession = ai.chats.create({
     model: "gemini-2.5-flash",
-    systemInstruction: "Eres un asistente útil y amigable. Responde siempre en el idioma del usuario.",
+    config: {
+      systemInstruction: "Eres un asistente útil y amigable. Responde siempre en el idioma del usuario.",
+    },
+    history: geminiHistory,
   });
-
-  const chatSession = model.startChat({ history: geminiHistory });
 
   // 4. Llamar a Gemini ANTES de abrir el stream para poder retornar HTTP 500 si falla
   let result;
   try {
-    result = await chatSession.sendMessageStream(body.message);
+    result = await chatSession.sendMessageStream({
+      message: body.message,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error desconocido";
     console.error("[Gemini Error]:", err);
@@ -55,8 +58,8 @@ chat.post("/", async (ctx) => {
 
   // 5. Gemini respondió OK — ahora sí abrimos el stream (headers ya van con 200)
   return stream(ctx, async (s) => {
-    for await (const chunk of result.stream) {
-      const text = chunk.text();
+    for await (const chunk of result) {
+      const text = chunk.text;
       if (text) {
         await s.write(text);
       }
